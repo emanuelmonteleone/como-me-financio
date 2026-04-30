@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Préstamo Francés</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07090f;--surface:#111827;--surface2:#1a2235;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --purple:#6366f1;--violet:#8b5cf6;--cyan:#06b6d4;
+  --green:#10b981;--amber:#f59e0b;--red:#ef4444;
+  --text:#f1f5f9;--muted:#94a3b8;--faint:#475569
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#130d2e 0%,#0d1424 60%,#07090f 100%);
+  border-bottom:1px solid rgba(99,102,241,0.18);
+  padding:18px 36px;display:flex;align-items:center;justify-content:space-between
+}
+.h-logo{display:flex;align-items:center;gap:14px}
+.h-icon{
+  width:46px;height:46px;border-radius:13px;
+  background:linear-gradient(135deg,var(--purple),var(--violet));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 0 24px rgba(99,102,241,0.4)
+}
+.h-title{font-size:18px;font-weight:800;letter-spacing:-0.01em}
+.h-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.h-badge{
+  background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.28);
+  color:#a5b4fc;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600
+}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1380px;margin:0 auto;padding:28px 36px}
+.sec-label{
+  font-size:10px;font-weight:700;color:var(--faint);text-transform:uppercase;
+  letter-spacing:.14em;margin-bottom:14px;display:flex;align-items:center;gap:10px
+}
+.sec-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.04)}
+
+/* ── CARDS ── */
+.card{
+  background:rgba(17,24,39,.85);border:1px solid var(--border);
+  border-radius:18px;backdrop-filter:blur(12px)
+}
+
+/* ── INPUTS ── */
+.inputs-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.inp-card{padding:22px 24px}
+.inp-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.inp-val-wrap{display:flex;align-items:baseline;gap:3px;margin-bottom:18px;line-height:1}
+.inp-prefix{font-size:26px;font-weight:900;color:var(--text);flex-shrink:0}
+.inp-num{
+  font-size:30px;font-weight:900;letter-spacing:-.03em;
+  background:transparent;border:none;border-bottom:1.5px solid transparent;
+  outline:none;color:var(--text);font-family:'Inter',sans-serif;
+  width:100%;min-width:0;padding:0 2px;transition:border-color .2s;
+  -moz-appearance:textfield
+}
+.inp-num:focus{border-bottom-color:rgba(99,102,241,.45)}
+.inp-num::-webkit-outer-spin-button,.inp-num::-webkit-inner-spin-button{-webkit-appearance:none}
+.inp-suffix{font-size:14px;font-weight:500;color:var(--muted);flex-shrink:0;white-space:nowrap}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:5px;
+  border-radius:3px;outline:none;cursor:pointer;
+  background:rgba(255,255,255,0.07);transition:background .1s
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:linear-gradient(135deg,var(--purple),var(--violet));cursor:pointer;
+  box-shadow:0 0 0 4px rgba(99,102,241,.25);transition:box-shadow .2s
+}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(99,102,241,.25)}
+.sl-limits{display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--faint)}
+.rate-toggle{display:flex;gap:6px;margin-bottom:12px}
+.rate-btn{
+  padding:4px 13px;border-radius:20px;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;cursor:pointer;
+  border:1px solid rgba(255,255,255,.1);background:transparent;
+  color:var(--muted);font-family:'Inter',sans-serif;transition:all .2s
+}
+.rate-btn.active{background:rgba(99,102,241,.18);border-color:rgba(99,102,241,.45);color:#a5b4fc}
+.rate-btn:hover:not(.active){border-color:rgba(255,255,255,.2);color:var(--text)}
+.rate-conv{font-size:11px;color:var(--faint);margin-top:8px}
+.rate-conv b{color:var(--muted);font-weight:600}
+
+/* ── KPIs ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi-card{padding:22px 24px;position:relative;overflow:hidden;transition:transform .2s,border-color .2s}
+.kpi-card:hover{transform:translateY(-3px);border-color:var(--border2)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:18px 18px 0 0}
+.k1::before{background:linear-gradient(90deg,#6366f1,#8b5cf6)}
+.k2::before{background:linear-gradient(90deg,#06b6d4,#3b82f6)}
+.k3::before{background:linear-gradient(90deg,#f59e0b,#ef4444)}
+.k4::before{background:linear-gradient(90deg,#10b981,#06b6d4)}
+.kpi-ico{font-size:22px;margin-bottom:14px}
+.kpi-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.kpi-val{font-size:26px;font-weight:900;letter-spacing:-.03em;margin-bottom:5px}
+.kpi-sub{font-size:11px;color:var(--faint)}
+
+/* ── CHARTS ── */
+.charts-row{display:grid;grid-template-columns:320px 1fr;gap:14px;margin-bottom:22px}
+.chart-card{padding:24px}
+.chart-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:20px}
+.donut-wrap{position:relative;height:190px;display:flex;align-items:center;justify-content:center}
+.donut-center{position:absolute;text-align:center;pointer-events:none}
+.donut-big{font-size:24px;font-weight:900;letter-spacing:-.02em}
+.donut-tiny{font-size:10px;color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.donut-legend{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+.leg-row{display:flex;justify-content:space-between;align-items:center}
+.leg-left{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.leg-val{font-size:13px;font-weight:700}
+.leg-divider{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05)}
+
+/* ── ADVANCE PANEL ── */
+.adv-panel{display:none;margin-bottom:22px}
+.adv-panel.show{display:block}
+.adv-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.adv-title{font-size:14px;font-weight:700}
+.adv-badge{
+  background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.28);
+  color:var(--amber);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700
+}
+.adv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.adv-kpi{
+  background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.15);
+  border-radius:14px;padding:18px 20px
+}
+.adv-kpi-lbl{font-size:10px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.adv-kpi-val{font-size:22px;font-weight:900;color:var(--amber)}
+
+/* ── TABLE ── */
+.tbl-card{overflow:hidden;margin-bottom:8px}
+.tbl-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 24px;border-bottom:1px solid var(--border)
+}
+.tbl-title{font-size:14px;font-weight:700}
+.tbl-hint{font-size:11px;color:var(--faint)}
+.reset-btn{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+  color:#fca5a5;padding:5px 14px;border-radius:8px;font-size:11px;font-weight:600;
+  cursor:pointer;transition:background .2s;font-family:'Inter',sans-serif
+}
+.reset-btn:hover{background:rgba(239,68,68,.2)}
+.tbl-wrap{overflow-x:auto;max-height:460px;overflow-y:auto}
+.tbl-wrap::-webkit-scrollbar{width:4px;height:4px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{
+  position:sticky;top:0;z-index:2;
+  background:#0b0f1c;color:var(--muted);
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  padding:11px 13px;text-align:right;border-bottom:1px solid rgba(255,255,255,.07);white-space:nowrap
+}
+thead th:first-child{text-align:center}
+thead th.th-adv{text-align:center;color:var(--amber)}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.025);transition:background .12s}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody tr.tr-adv{background:rgba(245,158,11,.04)}
+tbody tr.tr-adv:hover{background:rgba(245,158,11,.07)}
+td{padding:10px 13px;text-align:right;color:#cbd5e1;font-variant-numeric:tabular-nums}
+td:first-child{text-align:center;color:var(--faint);font-weight:600}
+td.c-cap{color:#818cf8;font-weight:600}
+td.c-int{color:#fbbf24}
+td.c-real{color:#34d399;font-weight:600}
+td.c-tot{color:var(--text);font-weight:800}
+td.c-adv-center{text-align:center}
+.adv-inp{
+  width:58px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22);
+  border-radius:7px;color:var(--amber);font-size:13px;font-weight:700;
+  font-family:'Inter',sans-serif;padding:4px 0;text-align:center;outline:none;
+  transition:border-color .2s,background .2s
+}
+.adv-inp:focus{border-color:rgba(245,158,11,.6);background:rgba(245,158,11,.18)}
+.adv-inp::-webkit-outer-spin-button,.adv-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.tr-total td{
+  background:rgba(99,102,241,.08)!important;
+  border-top:1px solid rgba(99,102,241,.2)!important;
+  font-weight:800;color:var(--text)!important
+}
+.tr-total td:first-child{color:#a5b4fc!important}
+.dash{color:var(--faint)}
+
+@media(max-width:1100px){
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .charts-row{grid-template-columns:1fr}
+  .inputs-row{grid-template-columns:1fr}
+  .adv-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-logo">
+    <div class="h-icon">💰</div>
+    <div>
+      <div class="h-title">Simulador de Préstamo Francés</div>
+      <div class="h-sub">Amortización con adelantos de capital · ARS</div>
+    </div>
+  </div>
+  <div class="h-badge">⚡ Live · Sistema Francés</div>
+</header>
+
+<div class="wrap">
+
+  <!-- PARAMS -->
+  <div class="sec-label">Parámetros del préstamo</div>
+  <div class="inputs-row">
+    <div class="card inp-card">
+      <div class="inp-label">Monto</div>
+      <div class="inp-val-wrap">
+        <span class="inp-prefix">$</span>
+        <input type="number" class="inp-num" id="n-monto" min="50000" max="50000000" step="1000" value="500000">
+        <span class="inp-suffix">ARS</span>
+      </div>
+      <input type="range" id="s-monto" min="50000" max="50000000" step="10000" value="500000">
+      <div class="sl-limits"><span>$50k</span><span>$50M</span></div>
+    </div>
+    <div class="card inp-card">
+      <div class="inp-label" id="lbl-tasa">Tasa Nominal Anual (TNA)</div>
+      <div class="rate-toggle">
+        <button class="rate-btn active" data-type="TNA">TNA</button>
+        <button class="rate-btn" data-type="TEA">TEA</button>
+        <button class="rate-btn" data-type="CFT">CFT</button>
+      </div>
+      <div class="inp-val-wrap">
+        <input type="number" class="inp-num" id="n-tasa" min="1" max="500" step="1" value="36">
+        <span class="inp-suffix">% anual</span>
+      </div>
+      <input type="range" id="s-tasa" min="1" max="500" step="1" value="36">
+      <div class="sl-limits"><span>1%</span><span>500%</span></div>
+      <div class="rate-conv" id="rate-conv">TEA equivalente: <b>—</b></div>
+    </div>
+    <div class="card inp-card">
+      <div class="inp-label">Plazo</div>
+      <div class="inp-val-wrap">
+        <input type="number" class="inp-num" id="n-plazo" min="3" max="120" step="1" value="24">
+        <span class="inp-suffix">meses</span>
+      </div>
+      <input type="range" id="s-plazo" min="3" max="120" step="1" value="24">
+      <div class="sl-limits"><span>3m</span><span>120m</span></div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="sec-label">Resumen financiero</div>
+  <div class="kpi-row">
+    <div class="card kpi-card k1">
+      <div class="kpi-ico">🧾</div>
+      <div class="kpi-lbl">Cuota Fija Mensual</div>
+      <div class="kpi-val" id="kv-cuota">—</div>
+      <div class="kpi-sub">Sistema francés</div>
+    </div>
+    <div class="card kpi-card k2">
+      <div class="kpi-ico">💸</div>
+      <div class="kpi-lbl">Total a Pagar</div>
+      <div class="kpi-val" id="kv-total">—</div>
+      <div class="kpi-sub" id="kv-total-sub">—</div>
+    </div>
+    <div class="card kpi-card k3">
+      <div class="kpi-ico">📈</div>
+      <div class="kpi-lbl">Total en Intereses</div>
+      <div class="kpi-val" id="kv-int">—</div>
+      <div class="kpi-sub" id="kv-int-sub">—</div>
+    </div>
+    <div class="card kpi-card k4">
+      <div class="kpi-ico">📅</div>
+      <div class="kpi-lbl">Tasa Efectiva Mensual</div>
+      <div class="kpi-val" id="kv-tasa-m">—</div>
+      <div class="kpi-sub" id="kv-tasa-m-sub">—</div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="sec-label">Análisis visual</div>
+  <div class="charts-row">
+    <div class="card chart-card">
+      <div class="chart-title">Distribución del costo total</div>
+      <div class="donut-wrap">
+        <canvas id="ch-donut" width="190" height="190"></canvas>
+        <div class="donut-center">
+          <div class="donut-big" id="d-pct">—</div>
+          <div class="donut-tiny">intereses</div>
+        </div>
+      </div>
+      <div class="donut-legend">
+        <div class="leg-row">
+          <div class="leg-left"><div class="leg-dot" style="background:#6366f1"></div>Capital</div>
+          <div class="leg-val" id="d-cap">—</div>
+        </div>
+        <div class="leg-row">
+          <div class="leg-left"><div class="leg-dot" style="background:#f59e0b"></div>Intereses</div>
+          <div class="leg-val" id="d-int">—</div>
+        </div>
+        <div class="leg-row leg-divider">
+          <div class="leg-left"><div class="leg-dot" style="background:#10b981"></div>Costo financiero</div>
+          <div class="leg-val" id="d-costo">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-title">Evolución del saldo</div>
+      <canvas id="ch-line" style="max-height:295px"></canvas>
+    </div>
+  </div>
+
+  <!-- ADVANCES -->
+  <div class="adv-panel" id="adv-panel">
+    <div class="adv-header">
+      <div class="adv-title">⚡ Impacto de los adelantos</div>
+      <div class="adv-badge" id="adv-badge">—</div>
+    </div>
+    <div class="adv-grid">
+      <div class="adv-kpi">
+        <div class="adv-kpi-lbl">Cuotas Adelantadas</div>
+        <div class="adv-kpi-val" id="a-cuotas">—</div>
+      </div>
+      <div class="adv-kpi">
+        <div class="adv-kpi-lbl">Capital Adelantado</div>
+        <div class="adv-kpi-val" id="a-cap">—</div>
+      </div>
+      <div class="adv-kpi">
+        <div class="adv-kpi-lbl">Interés Ahorrado (est.)</div>
+        <div class="adv-kpi-val" id="a-int">—</div>
+      </div>
+      <div class="adv-kpi">
+        <div class="adv-kpi-lbl">Total Pagado Real</div>
+        <div class="adv-kpi-val" id="a-tot">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="sec-label">Tabla de amortización</div>
+  <div class="card tbl-card">
+    <div class="tbl-hdr">
+      <div class="tbl-title">Cuadro de pagos detallado</div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="tbl-hint">Columna 🟡 → cuántas cuotas adelantás en ese pago</div>
+        <button class="reset-btn" id="btn-reset">✕ Limpiar adelantos</button>
+      </div>
+    </div>
+    <div class="tbl-wrap" id="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Saldo Inicial</th>
+            <th>Cuota Total</th>
+            <th>Capital</th>
+            <th>Interés</th>
+            <th>Saldo Final</th>
+            <th class="th-adv">Cuotas a<br>Adelantar</th>
+            <th>Cap. Adelantado</th>
+            <th>Saldo Real</th>
+            <th>Int. Ahorrado</th>
+            <th>Total que Pagás</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────
+const S = { monto: 500000, tasa: 36, plazo: 24, adv: {}, rateType: 'TNA' };
+
+// ── Format ───────────────────────────────────────────────────────────────
+const N0 = new Intl.NumberFormat('es-AR',{maximumFractionDigits:0});
+const N2 = new Intl.NumberFormat('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const $ = n => '$' + N0.format(Math.round(n));
+const P = n => n.toFixed(2) + '%';
+const dash = '<span class="dash">—</span>';
+
+// ── Loan math ─────────────────────────────────────────────────────────────
+function tasaMens(tasa) {
+  if (S.rateType === 'TNA') return tasa / 100 / 12;
+  return Math.pow(1 + tasa / 100, 1/12) - 1; // TEA o CFT
+}
+
+function cf(monto, tasa, plazo) {
+  const r = tasaMens(tasa);
+  if (r === 0) return monto / plazo;
+  return monto * r * Math.pow(1+r, plazo) / (Math.pow(1+r, plazo) - 1);
+}
+
+function calcTabla(monto, tasa, plazo, adv) {
+  const r = tasaMens(tasa);
+  const cuota = cf(monto, tasa, plazo);
+  let saldo = monto, rows = [];
+  for (let i = 0; i < plazo; i++) {
+    if (saldo < 0.01) break;
+    const n = i + 1;
+    const sI = saldo;
+    const int = sI * r;
+    const cT  = Math.min(cuota, sI * (1 + r));
+    const cap = cT - int;
+    const sF  = Math.max(sI - cap, 0);
+    const g   = adv[i] || 0;
+    const gE  = Math.max(Math.min(g, plazo - n), 0);
+    let capAdv = 0;
+    if (gE > 0 && r > 0 && cap > 0)
+      capAdv = cap * (1+r) * (Math.pow(1+r, gE) - 1) / r;
+    else if (gE > 0 && r === 0 && cap > 0)
+      capAdv = cap * gE;
+    const intAh  = capAdv * r;
+    const totPag = cT + capAdv;
+    saldo = Math.max(saldo - cap - capAdv, 0);
+    rows.push({ n, sI, cT, cap, int, sF, g, capAdv, saldo, intAh, totPag, hasAdv: g > 0 });
+  }
+  return rows;
+}
+
+// ── Charts setup ──────────────────────────────────────────────────────────
+let chDonut, chLine;
+
+function initCharts() {
+  chDonut = new Chart(document.getElementById('ch-donut').getContext('2d'), {
+    type: 'doughnut',
+    data: { datasets: [{ data: [1,0], backgroundColor: ['#6366f1','#f59e0b'], borderWidth: 0, hoverOffset: 6 }] },
+    options: {
+      cutout: '74%', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ' ' + $(c.raw) } }
+      },
+      animation: { duration: 500 }
+    }
+  });
+
+  chLine = new Chart(document.getElementById('ch-line').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Saldo Real',
+          data: [], borderColor: '#6366f1',
+          backgroundColor: ctx => {
+            const g = ctx.chart.ctx.createLinearGradient(0,0,0,280);
+            g.addColorStop(0,'rgba(99,102,241,.22)'); g.addColorStop(1,'rgba(99,102,241,0)');
+            return g;
+          },
+          fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2.5
+        },
+        {
+          label: 'Sin adelantos',
+          data: [], borderColor: 'rgba(148,163,184,.25)', backgroundColor: 'transparent',
+          fill: false, tension: 0.4, pointRadius: 0, pointHoverRadius: 4,
+          borderWidth: 1.5, borderDash: [5, 5]
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: '#94a3b8', font: { size: 11, family: 'Inter' }, boxWidth: 20, padding: 18, usePointStyle: true }
+        },
+        tooltip: {
+          backgroundColor: '#1e293b', titleColor: '#94a3b8', bodyColor: '#f1f5f9',
+          borderColor: 'rgba(255,255,255,.08)', borderWidth: 1, padding: 12,
+          callbacks: { label: c => '  ' + c.dataset.label + ': ' + $(c.raw) }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#475569', font: { size: 10 }, maxTicksLimit: 12 } },
+        y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: {
+          color: '#475569', font: { size: 10 },
+          callback: v => v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(0)+'k' : '$'+v
+        }}
+      },
+      animation: { duration: 400 }
+    }
+  });
+}
+
+// ── Slider fill ───────────────────────────────────────────────────────────
+function sliderFill(el) {
+  const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+  el.style.background = `linear-gradient(to right,#6366f1 ${pct}%,rgba(255,255,255,.07) ${pct}%)`;
+}
+['s-monto','s-tasa','s-plazo'].forEach(id => {
+  const el = document.getElementById(id); sliderFill(el);
+});
+
+// ── Main update ───────────────────────────────────────────────────────────
+function update() {
+  const { monto, tasa, plazo, adv } = S;
+  const rows = calcTabla(monto, tasa, plazo, adv);
+  const rowsBase = calcTabla(monto, tasa, plazo, {});
+  const r = tasaMens(tasa);
+  const cuota = cf(monto, tasa, plazo);
+  // Conversiones de tasa
+  const tea  = (Math.pow(1+r, 12) - 1) * 100;
+  const tnaE = r * 12 * 100;
+
+  const totPagado  = rows.reduce((s,x) => s + x.totPag, 0);
+  const totInt     = rows.reduce((s,x) => s + x.int, 0);
+  const totCap     = monto;
+  const pctInt     = totPagado > 0 ? (totInt / totPagado * 100) : 0;
+
+  const totAdvG    = Object.values(adv).reduce((s,v) => s + v, 0);
+  const totAdvCap  = rows.reduce((s,x) => s + x.capAdv, 0);
+  const totAdvInt  = rows.reduce((s,x) => s + x.intAh, 0);
+  const hasAdv     = totAdvG > 0;
+
+  // KPIs
+  set('kv-cuota', $(cuota));
+  set('kv-total', $(totPagado));
+  set('kv-total-sub', `+${P((totPagado/monto-1)*100)} sobre el capital`);
+  set('kv-int', $(totInt));
+  set('kv-int-sub', P(pctInt) + ' del total pagado');
+  set('kv-tasa-m', P(r*100));
+  set('kv-tasa-m-sub', S.rateType==='TNA' ? `TEA: ${P(tea)}` : `TNA equiv.: ${P(tnaE)}`);
+  // Conversión bajo el slider de tasa
+  const convEl = document.getElementById('rate-conv');
+  if (convEl) convEl.innerHTML = S.rateType==='TNA'
+    ? `TEA equivalente: <b>${P(tea)}</b>`
+    : `TNA equivalente: <b>${P(tnaE)}</b>`;
+
+  // Donut
+  set('d-pct', P(pctInt));
+  set('d-cap', $(totCap));
+  set('d-int', $(totInt));
+  set('d-costo', P(totInt/totCap*100));
+  chDonut.data.datasets[0].data = [totCap, totInt];
+  chDonut.update();
+
+  // Line
+  const labels = rows.map(x => x.n);
+  chLine.data.labels = labels;
+  chLine.data.datasets[0].data = rows.map(x => x.saldo);
+  chLine.data.datasets[0].label = hasAdv ? 'Saldo con adelantos' : 'Saldo Real';
+  chLine.data.datasets[1].data = hasAdv ? rowsBase.map(x => x.saldo) : [];
+  chLine.update();
+
+  // Advances panel
+  const panel = document.getElementById('adv-panel');
+  if (hasAdv) {
+    panel.classList.add('show');
+    set('adv-badge', totAdvG + ' cuotas adelantadas');
+    set('a-cuotas', totAdvG);
+    set('a-cap', $(totAdvCap));
+    set('a-int', $(totAdvInt));
+    set('a-tot', $(totPagado));
+  } else {
+    panel.classList.remove('show');
+  }
+
+  // Table
+  renderTable(rows);
+}
+
+function set(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = val;
+}
+
+function renderTable(rows) {
+  const wrap = document.getElementById('tbl-wrap');
+  const sT = wrap.scrollTop, sL = wrap.scrollLeft;
+  const tbody = document.getElementById('tbody');
+
+  const totals = {
+    cT: rows.reduce((s,x)=>s+x.cT,0),
+    cap: rows.reduce((s,x)=>s+x.cap,0),
+    int: rows.reduce((s,x)=>s+x.int,0),
+    capAdv: rows.reduce((s,x)=>s+x.capAdv,0),
+    intAh: rows.reduce((s,x)=>s+x.intAh,0),
+    totPag: rows.reduce((s,x)=>s+x.totPag,0),
+  };
+
+  tbody.innerHTML = rows.map(r => `
+    <tr class="${r.hasAdv ? 'tr-adv' : ''}">
+      <td>${r.n}</td>
+      <td>${$(r.sI)}</td>
+      <td>${$(r.cT)}</td>
+      <td class="c-cap">${$(r.cap)}</td>
+      <td class="c-int">${$(r.int)}</td>
+      <td>${$(r.sF)}</td>
+      <td class="c-adv-center">
+        <input class="adv-inp" type="number" min="0" max="60" placeholder="0"
+          value="${r.g > 0 ? r.g : ''}" data-i="${r.n-1}">
+      </td>
+      <td>${r.capAdv > 0.5 ? $(r.capAdv) : dash}</td>
+      <td class="c-real">${$(r.saldo)}</td>
+      <td>${r.intAh > 0.5 ? $(r.intAh) : dash}</td>
+      <td class="c-tot">${$(r.totPag)}</td>
+    </tr>
+  `).join('') + `
+    <tr class="tr-total">
+      <td>TOTAL</td>
+      <td>${dash}</td>
+      <td>${$(totals.cT)}</td>
+      <td>${$(totals.cap)}</td>
+      <td>${$(totals.int)}</td>
+      <td>${dash}</td>
+      <td>${dash}</td>
+      <td>${totals.capAdv > 0.5 ? $(totals.capAdv) : dash}</td>
+      <td>${dash}</td>
+      <td>${totals.intAh > 0.5 ? $(totals.intAh) : dash}</td>
+      <td>${$(totals.totPag)}</td>
+    </tr>
+  `;
+
+  wrap.scrollTop = sT;
+  wrap.scrollLeft = sL;
+
+  // Bind inputs
+  tbody.querySelectorAll('.adv-inp').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = parseInt(e.target.dataset.i);
+      const val = Math.max(parseInt(e.target.value) || 0, 0);
+      if (val > 0) S.adv[idx] = val; else delete S.adv[idx];
+      update();
+    });
+  });
+}
+
+// ── Slider ↔ Number input — sincronización bidireccional ──────────────────
+function bindParam(numId, sliderId, stateKey, min, max) {
+  const num = document.getElementById(numId);
+  const sl  = document.getElementById(sliderId);
+
+  sl.addEventListener('input', () => {
+    num.value = sl.value;
+    S[stateKey] = +sl.value; S.adv = {};
+    sliderFill(sl); update();
+  });
+
+  num.addEventListener('input', () => {
+    let v = parseInt(num.value) || min;
+    v = Math.min(Math.max(v, min), max);
+    sl.value = v;
+    S[stateKey] = v; S.adv = {};
+    sliderFill(sl); update();
+  });
+
+  // Enter o blur también aplica
+  num.addEventListener('keydown', e => { if(e.key==='Enter') num.blur(); });
+}
+
+bindParam('n-monto', 's-monto', 'monto', 50000, 50000000);
+bindParam('n-tasa',  's-tasa',  'tasa',  1,     500);
+bindParam('n-plazo', 's-plazo', 'plazo', 3,     120);
+
+// ── Toggle TNA / TEA / CFT ────────────────────────────────────────────────
+const lblMap = { TNA:'Tasa Nominal Anual (TNA)', TEA:'Tasa Efectiva Anual (TEA)', CFT:'Costo Financiero Total (CFT)' };
+document.querySelectorAll('.rate-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rate-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    S.rateType = btn.dataset.type;
+    document.getElementById('lbl-tasa').textContent = lblMap[S.rateType];
+    update();
+  });
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  S.adv = {};
+  update();
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+initCharts();
+update();
+</script>
+</body>
+</html>
