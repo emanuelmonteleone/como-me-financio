@@ -3,39 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador Préstamo Francés</title>
+<title>¿Cómo me financio? — Simulador de Préstamos y Crédito UVA · Emanuel Monteleone</title>
+<meta name="description" content="Simulador financiero gratuito: calculá tu cuota en sistema francés, proyectá tu hipoteca UVA bajo distintos escenarios de inflación y descargá el cuadro de pagos en Excel. Creado por Emanuel Monteleone.">
+<meta name="keywords" content="simulador préstamo, crédito UVA, hipoteca UVA, amortización francesa, como me financio, Emanuel Monteleone, calculadora préstamo Argentina, cuota préstamo">
+<meta name="author" content="Emanuel Monteleone">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://emanuelmonteleone7-code.github.io/simulador-prestamo-frances/">
+<meta property="og:title" content="¿Cómo me financio? — Simulador de Préstamos y UVA">
+<meta property="og:description" content="Calculá tu préstamo, proyectá tu hipoteca UVA y descargá tu cuadro de pagos. Gratis, sin registro. Por Emanuel Monteleone.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://emanuelmonteleone7-code.github.io/simulador-prestamo-frances/">
+<meta property="og:locale" content="es_AR">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#07090f;--surface:#111827;--surface2:#1a2235;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
-  --purple:#6366f1;--violet:#8b5cf6;--cyan:#06b6d4;
-  --green:#10b981;--amber:#f59e0b;--red:#ef4444;
-  --text:#f1f5f9;--muted:#94a3b8;--faint:#475569
+  --bg:#F5F7FA;--surface:#FFFFFF;--surface2:#EBF3FF;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  /* aliases para que el CSS existente tome los nuevos colores automáticamente */
+  --purple:#00509e;--violet:#003366;--cyan:#007a33;
+  --green:#007a33;--amber:#D97706;--red:#C0392B;
+  --text:#333333;--muted:#4A4A4A;--faint:#888888
 }
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-/* ── HEADER ── */
-header{
-  background:linear-gradient(135deg,#130d2e 0%,#0d1424 60%,#07090f 100%);
-  border-bottom:1px solid rgba(99,102,241,0.18);
-  padding:18px 36px;display:flex;align-items:center;justify-content:space-between
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:60px 36px;
+  background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(99,102,241,0.18) 0%,transparent 70%),
+             linear-gradient(180deg,#07090f 0%,#0b0d16 100%);
+  position:relative;overflow:hidden
 }
-.h-logo{display:flex;align-items:center;gap:14px}
-.h-icon{
-  width:46px;height:46px;border-radius:13px;
+.hero::before{
+  content:'';position:absolute;top:-40%;left:50%;transform:translateX(-50%);
+  width:700px;height:700px;border-radius:50%;
+  background:radial-gradient(circle,rgba(99,102,241,0.07) 0%,transparent 70%);
+  pointer-events:none
+}
+.hero-eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--purple);margin-bottom:24px;
+  display:flex;align-items:center;gap:8px
+}
+.hero-eyebrow span{
+  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);
+  padding:5px 16px;border-radius:20px
+}
+.hero-title{
+  font-size:clamp(52px,8vw,88px);font-weight:900;letter-spacing:-.04em;
+  line-height:1;margin-bottom:26px;
+  background:linear-gradient(135deg,#f1f5f9 0%,#a5b4fc 60%,#8b5cf6 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
+}
+.hero-sub{
+  font-size:clamp(16px,2.2vw,20px);color:var(--muted);max-width:560px;
+  line-height:1.6;margin-bottom:48px;font-weight:400
+}
+.hero-benefits{
+  display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:52px
+}
+.hero-ben{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:40px;padding:10px 22px;font-size:13px;color:var(--muted);
+  display:flex;align-items:center;gap:8px;transition:border-color .2s,background .2s
+}
+.hero-ben:hover{border-color:rgba(99,102,241,.35);background:rgba(99,102,241,.06);color:var(--text)}
+.hero-ben-icon{font-size:16px}
+.hero-cta{
   background:linear-gradient(135deg,var(--purple),var(--violet));
-  display:flex;align-items:center;justify-content:center;font-size:22px;
-  box-shadow:0 0 24px rgba(99,102,241,0.4)
+  color:#fff;border:none;padding:18px 48px;border-radius:50px;
+  font-size:17px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;
+  box-shadow:0 0 40px rgba(99,102,241,0.4);transition:transform .2s,box-shadow .2s;
+  letter-spacing:-.01em;margin-bottom:20px;display:block
 }
-.h-title{font-size:18px;font-weight:800;letter-spacing:-0.01em}
-.h-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
-.h-badge{
-  background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.28);
-  color:#a5b4fc;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600
+.hero-cta:hover{transform:translateY(-3px);box-shadow:0 0 60px rgba(99,102,241,0.55)}
+.hero-trust{font-size:12px;color:var(--faint);display:flex;align-items:center;gap:8px}
+.hero-trust-dot{width:3px;height:3px;border-radius:50%;background:var(--faint)}
+.hero-scroll{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.14em;
+  display:flex;flex-direction:column;align-items:center;gap:8px;animation:bob 2s ease-in-out infinite
 }
+.hero-scroll::after{
+  content:'';width:1px;height:36px;background:linear-gradient(to bottom,var(--faint),transparent)
+}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* ── TOP NAV ── */
+.top-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,9,15,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:12px 36px;display:flex;align-items:center;justify-content:space-between
+}
+.nav-brand{display:flex;align-items:center;gap:12px}
+.nav-brand-icon{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--purple),var(--violet));
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  box-shadow:0 0 14px rgba(99,102,241,.35)
+}
+.nav-brand-name{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.nav-pills{
+  display:flex;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:4px;gap:2px
+}
+.nav-tab{
+  padding:7px 22px;border-radius:20px;font-size:13px;font-weight:600;
+  background:transparent;border:none;color:var(--faint);
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s
+}
+.nav-tab.active{
+  background:linear-gradient(135deg,var(--purple),var(--violet));
+  color:#fff;box-shadow:0 2px 12px rgba(99,102,241,.4)
+}
+.nav-tab:not(.active):hover{color:var(--muted)}
+/* ── PAGES ── */
+/* page-sim se oculta por JS después de que los charts se inicializan */
+/* download callout */
+.download-callout{
+  display:flex;align-items:center;gap:20px;
+  background:rgba(0,122,51,.06);border:1px solid rgba(0,122,51,.2);
+  border-radius:14px;padding:20px 26px;margin-bottom:22px
+}
+.dc-icon{font-size:28px;flex-shrink:0}
+.dc-text{flex:1;font-size:14px;color:var(--muted);line-height:1.6}
+.dc-text strong{color:var(--text);display:block;margin-bottom:3px;font-size:15px}
+.dc-btn{
+  background:linear-gradient(135deg,#007a33,#005a25);
+  color:#fff;border:none;padding:11px 24px;border-radius:10px;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;
+  white-space:nowrap;box-shadow:0 2px 10px rgba(0,122,51,.25);
+  transition:transform .2s,box-shadow .2s;display:flex;align-items:center;gap:8px
+}
+.dc-btn:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,122,51,.35)}
+.export-btn{
+  background:rgba(0,122,51,.08);border:1px solid rgba(0,122,51,.22);
+  color:#007a33;padding:5px 14px;border-radius:8px;font-size:11px;font-weight:700;
+  cursor:pointer;transition:background .2s;font-family:'Inter',sans-serif;
+  display:flex;align-items:center;gap:6px
+}
+.export-btn:hover{background:rgba(0,122,51,.16)}
+.dc-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.dc-btn-sec{
+  background:transparent;border:1.5px solid rgba(0,122,51,.3);
+  color:#007a33;padding:9px 22px;border-radius:10px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+  white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:8px
+}
+.dc-btn-sec:hover{background:rgba(0,122,51,.07);border-color:rgba(0,122,51,.5)}
+@media(max-width:700px){.download-callout{flex-direction:column;align-items:flex-start}.dc-actions{flex-direction:row}}
+/* ── FOOTER ── */
+.site-footer{
+  border-top:1px solid rgba(255,255,255,.05);
+  padding:36px;text-align:center;background:rgba(0,0,0,.18)
+}
+.site-footer-text{font-size:12px;color:var(--faint);line-height:1.9}
+.site-footer-name{color:var(--muted);font-weight:700}
+.site-footer-dot{margin:0 10px;opacity:.25}
 
 /* ── LAYOUT ── */
 .wrap{max-width:1380px;margin:0 auto;padding:28px 36px}
@@ -196,22 +324,559 @@ td.c-adv-center{text-align:center}
   .inputs-row{grid-template-columns:1fr}
   .adv-grid{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ── LIGHT THEME OVERRIDES ── */
+/* nav */
+.top-nav{background:rgba(255,255,255,.97);border-bottom:1px solid var(--border);box-shadow:0 1px 8px rgba(0,0,0,.06)}
+.nav-brand-name{color:#003366}
+.nav-pills{background:rgba(0,51,102,.06);border:1px solid rgba(0,51,102,.1)}
+.nav-tab{color:var(--faint)}
+.nav-tab.active{box-shadow:0 2px 10px rgba(0,80,158,.3)}
+/* hero */
+.hero{background:radial-gradient(ellipse 80% 60% at 50% -5%,rgba(0,80,158,.09) 0%,transparent 70%),linear-gradient(180deg,#F5F7FA 0%,#EBF3FF 50%,#F5F7FA 100%)}
+.hero::before{background:radial-gradient(circle,rgba(0,80,158,.05) 0%,transparent 70%)}
+.hero-title{background:linear-gradient(135deg,#1E293B 0%,#003366 55%,#00509e 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{color:var(--muted)}
+.hero-eyebrow span{background:rgba(0,80,158,.08);border:1px solid rgba(0,80,158,.2)}
+.hero-ben{background:rgba(0,51,102,.05);border:1px solid rgba(0,51,102,.1);color:var(--muted)}
+.hero-ben:hover{border-color:rgba(0,80,158,.3);background:rgba(0,80,158,.07);color:var(--text)}
+.hero-cta{box-shadow:0 4px 20px rgba(0,80,158,.35)}
+.hero-cta:hover{box-shadow:0 8px 32px rgba(0,80,158,.45)}
+.hero-trust{color:var(--faint)}
+.hero-trust-dot{background:var(--faint)}
+.hero-scroll{color:var(--faint)}
+.hero-scroll::after{background:linear-gradient(to bottom,var(--faint),transparent)}
+/* layout */
+.sec-label{color:var(--faint)}
+.sec-label::after{background:rgba(0,0,0,.06)}
+.card{background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.kpi-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.k1::before{background:linear-gradient(90deg,#003366,#00509e)}
+.k2::before{background:linear-gradient(90deg,#007a33,#00a04a)}
+.k3::before{background:linear-gradient(90deg,#D97706,#f59e0b)}
+.k4::before{background:linear-gradient(90deg,#007a33,#00509e)}
+.kpi-lbl{color:var(--muted)}
+.kpi-sub{color:var(--faint)}
+.kpi-val{color:var(--text)}
+.chart-title{color:var(--muted)}
+.leg-left{color:var(--muted)}
+.leg-val{color:var(--text)}
+.donut-big{color:var(--text)}
+.donut-tiny{color:var(--faint)}
+/* inputs */
+.inp-label{color:var(--muted)}
+.inp-prefix,.inp-num{color:var(--text)}
+.inp-suffix{color:var(--muted)}
+.inp-num:focus{border-bottom-color:rgba(0,80,158,.4)}
+input[type=range]{background:rgba(0,0,0,.1)}
+input[type=range]::-webkit-slider-thumb{background:linear-gradient(135deg,#00509e,#003366);box-shadow:0 0 0 4px rgba(0,80,158,.18)}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(0,80,158,.18)}
+.sl-limits{color:var(--faint)}
+.rate-btn{border:1px solid rgba(0,0,0,.12);color:var(--muted)}
+.rate-btn.active{background:rgba(0,80,158,.1);border-color:rgba(0,80,158,.35);color:#00509e}
+.rate-conv{color:var(--faint)}
+.rate-conv b{color:var(--muted)}
+/* adv panel */
+.adv-title{color:var(--text)}
+.adv-badge{background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.28);color:#a05b00}
+.adv-kpi{background:rgba(217,119,6,.05);border:1px solid rgba(217,119,6,.18)}
+.adv-kpi-lbl{color:#a05b00}
+/* table */
+.tbl-title{color:var(--text)}
+.tbl-hint{color:var(--faint)}
+.reset-btn{background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.18);color:#C0392B}
+.reset-btn:hover{background:rgba(192,57,43,.14)}
+.tbl-wrap::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12)}
+thead th{background:#F0F4F8;color:var(--muted);border-bottom:1px solid var(--border)}
+thead th.th-adv{color:#D97706}
+tbody tr{border-bottom:1px solid rgba(0,0,0,.04)}
+tbody tr:hover{background:rgba(0,80,158,.025)}
+tbody tr.tr-adv{background:rgba(217,119,6,.04)}
+tbody tr.tr-adv:hover{background:rgba(217,119,6,.07)}
+td{color:var(--muted)}
+td:first-child{color:var(--faint)}
+td.c-cap{color:#00509e}
+td.c-int{color:#D97706}
+td.c-real{color:#007a33}
+td.c-tot{color:var(--text)}
+.adv-inp{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.25);color:#D97706}
+.adv-inp:focus{border-color:rgba(217,119,6,.6);background:rgba(217,119,6,.14)}
+.tr-total td{background:rgba(0,80,158,.06)!important;border-top:1px solid rgba(0,80,158,.14)!important;color:var(--text)!important}
+.tr-total td:first-child{color:#00509e!important}
+.dash{color:var(--faint)}
+/* ── EDU SECTIONS ── */
+html{scroll-behavior:smooth}
+.edu{background:var(--bg)}
+.edu-block{padding:80px 36px;border-top:1px solid rgba(255,255,255,.04)}
+.edu-block--alt{background:rgba(255,255,255,.015)}
+.edu-inner{max-width:1100px;margin:0 auto}
+.edu-label{font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.18em;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.edu-label::before{content:'';width:20px;height:1px;background:var(--purple)}
+.edu-h2{font-size:clamp(28px,4vw,42px);font-weight:900;letter-spacing:-.03em;margin-bottom:14px;color:var(--text)}
+.edu-p{font-size:16px;color:var(--muted);margin-bottom:48px;max-width:600px;line-height:1.6}
+/* var cards */
+.var-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.var-card{background:rgba(17,24,39,.7);border:1px solid var(--border);border-radius:20px;padding:32px 28px;position:relative;overflow:hidden;transition:border-color .25s,transform .25s}
+.var-card:hover{border-color:rgba(99,102,241,.3);transform:translateY(-4px)}
+.var-step{position:absolute;top:24px;right:24px;width:28px;height:28px;border-radius:50%;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2);color:#a5b4fc;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.var-icon{font-size:32px;margin-bottom:16px}
+.var-name{font-size:20px;font-weight:800;margin-bottom:12px;letter-spacing:-.02em}
+.var-body{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:20px}
+.var-tip{font-size:12px;color:#a5b4fc;line-height:1.55;background:rgba(99,102,241,.08);border-left:3px solid rgba(99,102,241,.4);padding:10px 14px;border-radius:0 8px 8px 0}
+/* rate cards */
+.rate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.rate-card{background:rgba(17,24,39,.7);border:1px solid var(--border);border-radius:20px;padding:32px 28px;transition:border-color .25s}
+.rate-card--mid{border-color:rgba(99,102,241,.15);background:rgba(99,102,241,.04)}
+.rate-tag{display:inline-block;padding:5px 16px;border-radius:20px;font-size:13px;font-weight:800;letter-spacing:.06em;margin-bottom:16px}
+.rate-tag--tna{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
+.rate-tag--tea{background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)}
+.rate-tag--cft{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.rate-title{font-size:16px;font-weight:700;margin-bottom:12px}
+.rate-body{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+.rate-example{font-size:12px;color:var(--faint);font-style:italic}
+.rate-banner{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:18px 24px;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:14px;line-height:1.55}
+.rate-banner strong{color:var(--text)}
+.rate-banner-icon{font-size:22px;flex-shrink:0}
+/* tabs */
+.guide-tabs{background:rgba(17,24,39,.5);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.tab-nav{display:flex;border-bottom:1px solid var(--border);background:rgba(0,0,0,.2);overflow-x:auto}
+.tab-btn{padding:16px 28px;font-size:13px;font-weight:600;color:var(--faint);background:transparent;border:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px}
+.tab-btn:hover{color:var(--muted);background:rgba(255,255,255,.02)}
+.tab-btn.active{color:#a5b4fc;border-bottom-color:var(--purple);background:rgba(99,102,241,.05)}
+.tab-panels{padding:40px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.panel-layout{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.panel-title{font-size:22px;font-weight:800;margin-bottom:14px;letter-spacing:-.02em}
+.panel-body{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:20px}
+.panel-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:24px;padding:0}
+.panel-list li{font-size:14px;color:var(--muted);line-height:1.55;padding-left:18px;position:relative}
+.panel-list li::before{content:'→';position:absolute;left:0;color:var(--purple);font-weight:700}
+.panel-list strong{color:var(--text)}
+.panel-highlight{background:rgba(99,102,241,.07);border-left:3px solid rgba(99,102,241,.5);padding:14px 18px;border-radius:0 10px 10px 0;font-size:13px;color:var(--muted);line-height:1.6}
+/* panel visuals — bars */
+.pv-bars{width:100%}
+.pv-label-row{display:flex;justify-content:space-around;font-size:11px;color:var(--faint);margin-bottom:10px}
+.pv-bar-group{display:flex;gap:20px;justify-content:center;margin-bottom:16px}
+.pv-bar-wrap{width:72px;height:170px;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.pv-seg{display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:.05em}
+.pv-int{background:linear-gradient(180deg,#f59e0b,#d97706);color:rgba(0,0,0,.5)}
+.pv-cap{background:linear-gradient(180deg,#6366f1,#4f46e5);color:rgba(255,255,255,.7)}
+.pv-legend{display:flex;gap:20px;justify-content:center;font-size:12px;color:var(--muted);margin-top:4px}
+.pv-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+.pv-dot-int{background:#f59e0b}
+.pv-dot-cap{background:#6366f1}
+/* panel visuals — kpi mock */
+.pv-kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pv-kpi-card{border-radius:14px;padding:16px 18px;border:1px solid}
+.pv-kpi-purple{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.2)}
+.pv-kpi-cyan{background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.2)}
+.pv-kpi-amber{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}
+.pv-kpi-green{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2)}
+.pv-kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-bottom:8px}
+.pv-kpi-val{font-size:18px;font-weight:900;color:var(--text)}
+/* panel visuals — donut */
+.pv-chart{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.pv-donut-demo{display:flex;flex-direction:column;align-items:center;gap:16px}
+.pv-donut-ring{width:150px;height:150px;border-radius:50%;background:conic-gradient(#6366f1 0% 57%,#f59e0b 57% 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 32px rgba(99,102,241,.2)}
+.pv-donut-inner{width:96px;height:96px;border-radius:50%;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pv-donut-pct{font-size:20px;font-weight:900;color:var(--amber)}
+.pv-donut-lbl{font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em}
+.pv-donut-refs{display:flex;gap:16px;font-size:12px;color:var(--muted);align-items:center}
+/* panel visuals — advances */
+.pv-adv{display:flex;flex-direction:column;gap:8px;justify-content:center}
+.pv-adv-timeline{display:flex;flex-direction:column;position:relative;padding-left:32px}
+.pv-adv-timeline::before{content:'';position:absolute;left:7px;top:20px;bottom:20px;width:2px;background:rgba(255,255,255,.06);border-radius:1px}
+.pv-adv-step{display:flex;align-items:flex-start;gap:0;padding:14px 0;position:relative}
+.pv-adv-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--violet));box-shadow:0 0 12px rgba(99,102,241,.5);position:absolute;left:-32px;top:16px}
+.pv-adv-dot-gray{background:rgba(148,163,184,.3);box-shadow:none}
+.pv-adv-dot-faint{background:rgba(148,163,184,.12);box-shadow:none}
+.pv-adv-month{font-size:13px;font-weight:700;margin-bottom:4px}
+.pv-adv-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.pv-adv-save{color:#6ee7b7;font-weight:600}
+.pv-adv-mid{color:#fbbf24;font-weight:600}
+.pv-adv-late{color:var(--faint);font-weight:600}
+.pv-adv-note{font-size:11px;color:var(--faint);text-align:center;font-style:italic;padding-top:8px}
+@media(max-width:900px){
+  .var-grid,.rate-grid{grid-template-columns:1fr}
+  .panel-layout{grid-template-columns:1fr}
+  .pv-kpi{grid-template-columns:1fr 1fr}
+  .edu-block{padding:60px 24px}
+  .tab-panels{padding:28px 24px}
+}
+/* edu light overrides */
+.edu{background:var(--bg)}
+.edu-block{border-top:1px solid rgba(0,0,0,.06)}
+.edu-block--alt{background:rgba(0,51,102,.03)}
+.edu-label{color:#00509e}
+.edu-label::before{background:#00509e}
+.edu-h2{color:var(--text)}
+.edu-p{color:var(--muted)}
+.var-card{background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.var-card:hover{border-color:rgba(0,80,158,.25);box-shadow:0 6px 20px rgba(0,80,158,.08)}
+.var-step{background:rgba(0,80,158,.08);border:1px solid rgba(0,80,158,.15);color:#00509e}
+.var-name{color:var(--text)}
+.var-body{color:var(--muted)}
+.var-tip{color:#00509e;background:rgba(0,80,158,.07);border-left:3px solid rgba(0,80,158,.35)}
+.rate-card{background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.rate-card--mid{border-color:rgba(0,80,158,.2);background:rgba(0,80,158,.03)}
+.rate-tag--tna{background:rgba(0,0,0,.06);color:var(--faint);border:1px solid rgba(0,0,0,.1)}
+.rate-tag--tea{background:rgba(0,80,158,.1);color:#00509e;border:1px solid rgba(0,80,158,.25)}
+.rate-tag--cft{background:rgba(0,122,51,.1);color:#007a33;border:1px solid rgba(0,122,51,.25)}
+.rate-title{color:var(--text)}
+.rate-body{color:var(--muted)}
+.rate-example{color:var(--faint)}
+.rate-banner{background:rgba(0,80,158,.06);border:1px solid rgba(0,80,158,.14);color:var(--muted)}
+.rate-banner strong{color:var(--text)}
+.guide-tabs{background:#fff;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.tab-nav{background:#F0F4F8;border-bottom:1px solid var(--border)}
+.tab-btn{color:var(--faint)}
+.tab-btn:hover{color:var(--muted);background:rgba(0,0,0,.025)}
+.tab-btn.active{color:#00509e;border-bottom-color:#00509e;background:rgba(0,80,158,.05)}
+.tab-panels{background:#fff}
+.panel-title{color:var(--text)}
+.panel-body,.panel-list li{color:var(--muted)}
+.panel-list li::before{color:#00509e}
+.panel-list strong{color:var(--text)}
+.panel-highlight{background:rgba(0,80,158,.06);border-left:3px solid rgba(0,80,158,.4);color:var(--muted)}
+.pv-bar-wrap{background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.07)}
+.pv-legend{color:var(--muted)}
+.pv-kpi-purple{background:rgba(0,80,158,.07);border-color:rgba(0,80,158,.16)}
+.pv-kpi-cyan{background:rgba(0,122,51,.07);border-color:rgba(0,122,51,.16)}
+.pv-kpi-amber{background:rgba(217,119,6,.07);border-color:rgba(217,119,6,.16)}
+.pv-kpi-green{background:rgba(0,122,51,.07);border-color:rgba(0,122,51,.16)}
+.pv-kpi-label{color:var(--faint)}
+.pv-kpi-val{color:var(--text)}
+.pv-donut-ring{background:conic-gradient(#00509e 0% 57%,#D97706 57% 100%);box-shadow:0 0 24px rgba(0,80,158,.15)}
+.pv-donut-inner{background:#fff}
+.pv-donut-pct{color:#D97706}
+.pv-donut-lbl{color:var(--faint)}
+.pv-donut-refs{color:var(--muted)}
+.pv-adv-timeline::before{background:rgba(0,0,0,.1)}
+.pv-adv-month{color:var(--text)}
+.pv-adv-desc{color:var(--muted)}
+.pv-adv-save{color:#007a33}
+.pv-adv-mid{color:#D97706}
+.pv-adv-late{color:var(--faint)}
+.pv-adv-note{color:var(--faint)}
+.site-footer{border-top:1px solid var(--border);background:rgba(0,51,102,.03)}
+.site-footer-text{color:var(--faint)}
+.site-footer-name{color:#00509e}
+/* ── UVA PAGE ── */
+.uva-intro{background:linear-gradient(135deg,rgba(0,80,158,.06) 0%,rgba(0,122,51,.04) 100%);border-bottom:1px solid rgba(0,0,0,.06);padding:60px 36px}
+.uva-intro-inner{max-width:1100px;margin:0 auto}
+.uva-intro-title{font-size:clamp(28px,4vw,42px);font-weight:900;letter-spacing:-.03em;margin-bottom:12px;color:var(--text)}
+.uva-intro-sub{font-size:16px;color:var(--muted);max-width:600px;line-height:1.6;margin-bottom:24px}
+.uva-badge-row{display:flex;flex-wrap:wrap;gap:10px}
+.uva-badge{background:rgba(0,51,102,.07);border:1px solid rgba(0,51,102,.14);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:600;color:#00509e}
+.uva-scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+.sc-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:transform .2s}
+.sc-card:hover{transform:translateY(-3px)}
+.sc-opt{border-top:3px solid #007a33}
+.sc-base{border-top:3px solid #00509e}
+.sc-pes{border-top:3px solid #C0392B}
+.sc-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sc-dot-opt{background:#007a33}.sc-dot-base{background:#00509e}.sc-dot-pes{background:#C0392B}
+.sc-title{font-size:14px;font-weight:700;color:var(--text)}
+.sc-inp-wrap{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.sc-inp{width:80px;font-size:28px;font-weight:900;font-family:'Inter',sans-serif;background:transparent;border:none;border-bottom:2px solid rgba(0,0,0,.15);outline:none;color:var(--text);padding:0;-moz-appearance:textfield;transition:border-color .2s}
+.sc-inp:focus{border-bottom-color:#00509e}
+.sc-inp::-webkit-outer-spin-button,.sc-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.sc-unit{font-size:13px;color:var(--muted);font-weight:500}
+.sc-hint{font-size:12px;color:var(--faint);line-height:1.5}
+.uva-alert{display:flex;align-items:flex-start;gap:14px;background:rgba(0,80,158,.05);border:1px solid rgba(0,80,158,.15);border-radius:12px;padding:16px 20px;margin-bottom:22px;font-size:13px;color:var(--muted);line-height:1.6}
+.sc-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0}
+.sc-tog-btn{padding:6px 14px;font-size:11px;font-weight:700;background:transparent;border:none;border-right:1px solid var(--border);cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;color:var(--faint)}
+.sc-tog-btn:last-child{border-right:none}
+.sc-tog-btn:not(.active):hover{background:rgba(0,0,0,.04);color:var(--muted)}
+.sc-tog-btn.active-opt{background:#007a33;color:#fff}
+.sc-tog-btn.active-base{background:#00509e;color:#fff}
+.sc-tog-btn.active-pes{background:#C0392B;color:#fff}
+.uva-alert strong{color:var(--text)}
+@media(max-width:900px){.uva-scenarios{grid-template-columns:1fr}.uva-intro{padding:40px 24px}}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="h-logo">
-    <div class="h-icon">💰</div>
-    <div>
-      <div class="h-title">Simulador de Préstamo Francés</div>
-      <div class="h-sub">Amortización con adelantos de capital · ARS</div>
+<nav class="top-nav">
+  <div class="nav-brand">
+    <div class="nav-brand-icon">💰</div>
+    <div class="nav-brand-name">¿Cómo me financio?</div>
+  </div>
+  <div class="nav-pills">
+    <button class="nav-tab active" data-page="learn">Aprendé</button>
+    <button class="nav-tab" data-page="sim">Simulador de préstamos</button>
+    <button class="nav-tab" data-page="uva">Simulador hipotecario UVA</button>
+  </div>
+</nav>
+
+<div id="page-learn">
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-eyebrow"><span>Simulador financiero · built by Emanuel Monteleone</span></div>
+  <h1 class="hero-title">¿Cómo me<br>financio?</h1>
+  <p class="hero-sub">Calculá tu cuota, entendé cuánto vas a pagar en intereses y descubrí cómo ahorrar adelantando capital.</p>
+  <div class="hero-benefits">
+    <div class="hero-ben"><span class="hero-ben-icon">📊</span>Cuota exacta en segundos</div>
+    <div class="hero-ben"><span class="hero-ben-icon">⚡</span>Simulá adelantos de capital</div>
+    <div class="hero-ben"><span class="hero-ben-icon">💡</span>Compará TNA, TEA y CFT</div>
+  </div>
+  <button class="hero-cta" onclick="document.getElementById('simulador').scrollIntoView({behavior:'smooth'})">Calcular mi préstamo</button>
+  <div class="hero-trust">
+    <span>Gratis</span>
+    <span class="hero-trust-dot"></span>
+    <span>Sin registro</span>
+    <span class="hero-trust-dot"></span>
+    <span>Sistema francés</span>
+  </div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- EDUCATIONAL SECTION -->
+<section class="edu">
+
+  <!-- Bloque A: Las 3 variables -->
+  <div class="edu-block">
+    <div class="edu-inner">
+      <div class="edu-label">Por dónde empezar</div>
+      <h2 class="edu-h2">3 variables definen tu crédito</h2>
+      <p class="edu-p">Antes de simular, entendé qué controla cada número. Ajustalos en este orden.</p>
+      <div class="var-grid">
+        <div class="var-card">
+          <div class="var-step">1</div>
+          <div class="var-icon">💰</div>
+          <div class="var-name">Monto</div>
+          <div class="var-body">Cuánto dinero necesitás. Definilo primero: cada peso extra que pedís genera intereses durante todo el plazo.</div>
+          <div class="var-tip">💡 Pedí lo justo. Si te sobra, lo usás. Si pagás de más en intereses, lo perdés.</div>
+        </div>
+        <div class="var-card">
+          <div class="var-step">2</div>
+          <div class="var-icon">📊</div>
+          <div class="var-name">Tasa</div>
+          <div class="var-body">El costo del dinero expresado en porcentaje anual. Antes de comparar entidades, fijate qué tipo de tasa te ofrecen: TNA, TEA o CFT.</div>
+          <div class="var-tip">💡 No compares la TNA de un banco con la TEA de otro. Igualá el tipo primero.</div>
+        </div>
+        <div class="var-card">
+          <div class="var-step">3</div>
+          <div class="var-icon">📅</div>
+          <div class="var-name">Plazo</div>
+          <div class="var-body">En cuántos meses devolvés el dinero. Más plazo = cuota más baja, pero pagás mucho más en intereses totales.</div>
+          <div class="var-tip">💡 Un préstamo a 48 meses puede costar el doble que a 24, aunque la cuota mensual parezca cómoda.</div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="h-badge">⚡ Live · Sistema Francés</div>
-</header>
 
-<div class="wrap">
+  <!-- Bloque B: Tasas -->
+  <div class="edu-block edu-block--alt">
+    <div class="edu-inner">
+      <div class="edu-label">Entendé la tasa</div>
+      <h2 class="edu-h2">TNA, TEA y CFT: no son lo mismo</h2>
+      <p class="edu-p">Los bancos suelen publicitar la TNA porque parece más baja. Pero el número que realmente importa es otro.</p>
+      <div class="rate-grid">
+        <div class="rate-card">
+          <div class="rate-tag rate-tag--tna">TNA</div>
+          <div class="rate-title">Tasa Nominal Anual</div>
+          <div class="rate-body">La tasa "de catálogo". Se divide por 12 para calcular el interés mensual de cada cuota. No refleja el efecto del interés compuesto, por eso parece más baja.</div>
+          <div class="rate-example">Ej: TNA 36% → 3% mensual sobre el saldo</div>
+        </div>
+        <div class="rate-card rate-card--mid">
+          <div class="rate-tag rate-tag--tea">TEA</div>
+          <div class="rate-title">Tasa Efectiva Anual</div>
+          <div class="rate-body">Incluye el efecto del interés compuesto. Es más realista que la TNA para comparar opciones a distintos plazos o con distintas frecuencias de pago.</div>
+          <div class="rate-example">Ej: TNA 36% ≈ TEA 42,6% anual</div>
+        </div>
+        <div class="rate-card">
+          <div class="rate-tag rate-tag--cft">CFT</div>
+          <div class="rate-title">Costo Financiero Total</div>
+          <div class="rate-body">La TEA más seguros de vida, comisiones y gastos de otorgamiento. Es el número que regula el BCRA y el único comparable entre distintas entidades.</div>
+          <div class="rate-example">Siempre es mayor que la TNA y la TEA</div>
+        </div>
+      </div>
+      <div class="rate-banner">
+        <span class="rate-banner-icon">⚖️</span>
+        <span>Al comparar préstamos de distintas entidades, <strong>siempre usá el CFT</strong>. Es el único número que incluye todos los costos reales del crédito.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloque C: Tabs -->
+  <div class="edu-block">
+    <div class="edu-inner">
+      <div class="edu-label">Leé el simulador</div>
+      <h2 class="edu-h2">¿Qué estás viendo?</h2>
+      <p class="edu-p">El simulador tiene más información de la que parece a primera vista. Acá te explicamos cada parte.</p>
+      <div class="guide-tabs">
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab="frances">Sistema Francés</button>
+          <button class="tab-btn" data-tab="numeros">Los números clave</button>
+          <button class="tab-btn" data-tab="graficos">Los gráficos</button>
+          <button class="tab-btn" data-tab="adelantos">Adelantar cuotas</button>
+        </div>
+        <div class="tab-panels">
+
+          <div class="tab-panel active" data-panel="frances">
+            <div class="panel-layout">
+              <div class="panel-text">
+                <h3 class="panel-title">Cuota fija, composición variable</h3>
+                <p class="panel-body">En el sistema francés siempre pagás la misma cuota mensual. Pero lo que cambia internamente es qué parte es capital y qué parte es interés.</p>
+                <ul class="panel-list">
+                  <li><strong>Al principio:</strong> pagás más interés que capital. El banco cobra primero lo que le debés por usar el dinero.</li>
+                  <li><strong>A mitad del plazo:</strong> la proporción se empareja. Interés y capital son similares.</li>
+                  <li><strong>Al final:</strong> pagás casi todo capital. Ya pagaste la mayor parte de los intereses en los primeros meses.</li>
+                </ul>
+                <div class="panel-highlight">
+                  Esto explica por qué en los primeros meses el saldo baja muy despacio aunque estés pagando regularmente.
+                </div>
+              </div>
+              <div class="panel-visual">
+                <div class="pv-bars">
+                  <div class="pv-label-row"><span>Cuota 1</span><span>Cuota 12</span><span>Cuota 24</span></div>
+                  <div class="pv-bar-group">
+                    <div class="pv-bar-wrap">
+                      <div class="pv-seg pv-int" style="flex:0.82">INT</div>
+                      <div class="pv-seg pv-cap" style="flex:0.18">CAP</div>
+                    </div>
+                    <div class="pv-bar-wrap">
+                      <div class="pv-seg pv-int" style="flex:0.52"></div>
+                      <div class="pv-seg pv-cap" style="flex:0.48"></div>
+                    </div>
+                    <div class="pv-bar-wrap">
+                      <div class="pv-seg pv-int" style="flex:0.12"></div>
+                      <div class="pv-seg pv-cap" style="flex:0.88">CAP</div>
+                    </div>
+                  </div>
+                  <div class="pv-legend">
+                    <span><span class="pv-dot pv-dot-int"></span>Interés</span>
+                    <span><span class="pv-dot pv-dot-cap"></span>Capital</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-panel="numeros">
+            <div class="panel-layout">
+              <div class="panel-text">
+                <h3 class="panel-title">Los 4 indicadores de arriba</h3>
+                <p class="panel-body">Las 4 tarjetas resumen lo más importante de tu préstamo sin necesidad de leer la tabla completa.</p>
+                <ul class="panel-list">
+                  <li><strong>Cuota fija mensual:</strong> lo que salís de bolsillo cada mes. Siempre igual en sistema francés.</li>
+                  <li><strong>Total a pagar:</strong> cuota × plazo. Incluye capital más todos los intereses acumulados.</li>
+                  <li><strong>Total en intereses:</strong> el costo real del crédito. La diferencia entre lo que pediste y lo que terminás pagando.</li>
+                  <li><strong>Tasa efectiva mensual:</strong> el % real que pagás cada mes sobre el saldo pendiente.</li>
+                </ul>
+                <div class="panel-highlight">
+                  Mirá la diferencia entre el monto pedido y el total a pagar. Esa brecha son los intereses: el precio de usar ese dinero hoy.
+                </div>
+              </div>
+              <div class="panel-visual pv-kpi">
+                <div class="pv-kpi-card pv-kpi-purple">
+                  <div class="pv-kpi-label">Cuota mensual</div>
+                  <div class="pv-kpi-val">$29.524</div>
+                </div>
+                <div class="pv-kpi-card pv-kpi-cyan">
+                  <div class="pv-kpi-label">Total a pagar</div>
+                  <div class="pv-kpi-val">$708.576</div>
+                </div>
+                <div class="pv-kpi-card pv-kpi-amber">
+                  <div class="pv-kpi-label">En intereses</div>
+                  <div class="pv-kpi-val">$208.576</div>
+                </div>
+                <div class="pv-kpi-card pv-kpi-green">
+                  <div class="pv-kpi-label">Tasa mensual</div>
+                  <div class="pv-kpi-val">3,00%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-panel="graficos">
+            <div class="panel-layout">
+              <div class="panel-text">
+                <h3 class="panel-title">Dos gráficos, dos perspectivas</h3>
+                <p class="panel-body">Los gráficos comunican visualmente lo que los números solos no transmiten tan rápido.</p>
+                <ul class="panel-list">
+                  <li><strong>El donut:</strong> muestra qué proporción del total pagado son intereses. Si es mitad amarillo, estás pagando el doble de lo que pediste.</li>
+                  <li><strong>La línea de saldo:</strong> visualizá cómo baja tu deuda mes a mes. Al principio baja lento, después baja más rápido.</li>
+                  <li><strong>La línea punteada:</strong> aparece cuando adelantás cuotas. Compara el saldo original vs. el saldo real con tus adelantos.</li>
+                </ul>
+                <div class="panel-highlight">
+                  Si la curva de saldo baja muy despacio los primeros meses, es señal de tasa alta o plazo demasiado largo para tu situación.
+                </div>
+              </div>
+              <div class="panel-visual pv-chart">
+                <div class="pv-donut-demo">
+                  <div class="pv-donut-ring">
+                    <div class="pv-donut-inner">
+                      <div class="pv-donut-pct">43%</div>
+                      <div class="pv-donut-lbl">intereses</div>
+                    </div>
+                  </div>
+                  <div class="pv-donut-refs">
+                    <span><span class="pv-dot" style="background:#6366f1"></span>Capital</span>
+                    <span><span class="pv-dot" style="background:#f59e0b"></span>Intereses</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-panel="adelantos">
+            <div class="panel-layout">
+              <div class="panel-text">
+                <h3 class="panel-title">El verdadero poder del simulador</h3>
+                <p class="panel-body">Adelantar capital es la estrategia más efectiva para reducir el costo total de un préstamo en sistema francés.</p>
+                <ul class="panel-list">
+                  <li><strong>¿Cómo funciona?</strong> En la tabla hay una columna amarilla. Escribí cuántas cuotas futuras querés cancelar en ese pago. El simulador recalcula todo automáticamente.</li>
+                  <li><strong>¿Cuándo conviene más?</strong> Cuanto antes adelantes, más intereses ahorás. En el mes 3 de un préstamo largo podés ahorrar 6 veces más que haciendo lo mismo en el mes 30.</li>
+                  <li><strong>¿Por qué?</strong> Porque reducís el capital sobre el que se calculan los intereses de todos los meses siguientes. A mayor saldo pendiente, mayor el ahorro potencial.</li>
+                </ul>
+                <div class="panel-highlight">
+                  El panel amarillo que aparece arriba de la tabla muestra el ahorro real en intereses y el total efectivo pagado con los adelantos.
+                </div>
+              </div>
+              <div class="panel-visual pv-adv">
+                <div class="pv-adv-timeline">
+                  <div class="pv-adv-step">
+                    <div class="pv-adv-dot"></div>
+                    <div class="pv-adv-info">
+                      <div class="pv-adv-month">Mes 3 — adelantás 6 cuotas</div>
+                      <div class="pv-adv-desc"><span class="pv-adv-save">Ahorrás ~$180.000 en intereses</span></div>
+                    </div>
+                  </div>
+                  <div class="pv-adv-step">
+                    <div class="pv-adv-dot pv-adv-dot-gray"></div>
+                    <div class="pv-adv-info">
+                      <div class="pv-adv-month">Mes 15 — adelantás 6 cuotas</div>
+                      <div class="pv-adv-desc"><span class="pv-adv-mid">Ahorrás ~$95.000 en intereses</span></div>
+                    </div>
+                  </div>
+                  <div class="pv-adv-step">
+                    <div class="pv-adv-dot pv-adv-dot-faint"></div>
+                    <div class="pv-adv-info">
+                      <div class="pv-adv-month">Mes 30 — adelantás 6 cuotas</div>
+                      <div class="pv-adv-desc"><span class="pv-adv-late">Ahorrás ~$30.000 en intereses</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="pv-adv-note">El mismo adelanto en momentos distintos → ahorro muy distinto</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+</div><!-- /page-learn -->
+
+<div id="page-sim">
+<div class="wrap" id="simulador">
 
   <!-- PARAMS -->
   <div class="sec-label">Parámetros del préstamo</div>
@@ -220,11 +885,11 @@ td.c-adv-center{text-align:center}
       <div class="inp-label">Monto</div>
       <div class="inp-val-wrap">
         <span class="inp-prefix">$</span>
-        <input type="number" class="inp-num" id="n-monto" min="50000" max="50000000" step="1000" value="500000">
+        <input type="number" class="inp-num" id="n-monto" min="1" max="50000000" step="1000" value="500000">
         <span class="inp-suffix">ARS</span>
       </div>
-      <input type="range" id="s-monto" min="50000" max="50000000" step="10000" value="500000">
-      <div class="sl-limits"><span>$50k</span><span>$50M</span></div>
+      <input type="range" id="s-monto" min="1" max="50000000" step="1000" value="500000">
+      <div class="sl-limits"><span>$1</span><span>$50M</span></div>
     </div>
     <div class="card inp-card">
       <div class="inp-label" id="lbl-tasa">Tasa Nominal Anual (TNA)</div>
@@ -341,12 +1006,24 @@ td.c-adv-center{text-align:center}
   </div>
 
   <!-- TABLE -->
+  <div class="download-callout">
+    <div class="dc-icon">📥</div>
+    <div class="dc-text">
+      <strong>¿Ya tenés tu simulación lista?</strong>
+      Descargá el cuadro de pagos en Excel para guardarlo o compartirlo, o limpiá todo para armar una nueva simulación desde cero.
+    </div>
+    <div class="dc-actions">
+      <button class="dc-btn" onclick="exportToExcel()">⬇ Descargar Excel</button>
+      <button class="dc-btn-sec" onclick="resetSimulator()">🔄 Nueva simulación</button>
+    </div>
+  </div>
   <div class="sec-label">Tabla de amortización</div>
   <div class="card tbl-card">
     <div class="tbl-hdr">
       <div class="tbl-title">Cuadro de pagos detallado</div>
-      <div style="display:flex;align-items:center;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px">
         <div class="tbl-hint">Columna 🟡 → cuántas cuotas adelantás en ese pago</div>
+        <button class="export-btn" onclick="exportToExcel()">⬇ Excel</button>
         <button class="reset-btn" id="btn-reset">✕ Limpiar adelantos</button>
       </div>
     </div>
@@ -373,6 +1050,208 @@ td.c-adv-center{text-align:center}
   </div>
 
 </div><!-- /wrap -->
+
+<footer class="site-footer">
+  <div class="site-footer-text">
+    Diseñado y desarrollado por <span class="site-footer-name">Emanuel Monteleone</span>
+    <span class="site-footer-dot">·</span>
+    Idea y concepto propios
+    <span class="site-footer-dot">·</span>
+    2025
+  </div>
+</footer>
+
+</div><!-- /page-sim -->
+
+<!-- ═══ PÁGINA UVA ═══ -->
+<div id="page-uva">
+
+  <div class="uva-intro">
+    <div class="uva-intro-inner">
+      <div class="edu-label">Simulador hipotecario</div>
+      <h2 class="uva-intro-title">Tu préstamo UVA, en claro</h2>
+      <p class="uva-intro-sub">En un crédito UVA tu cuota en UVAs es fija, pero en pesos sube con la inflación. Proyectá cómo evolucionará tu deuda y cuánto pagarás en distintos escenarios.</p>
+      <div class="uva-badge-row">
+        <span class="uva-badge">📐 Sistema francés sobre UVA</span>
+        <span class="uva-badge">📊 3 escenarios de inflación</span>
+        <span class="uva-badge">📥 Exportá en Excel</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="uva-alert">
+      <span style="font-size:20px;flex-shrink:0">💡</span>
+      <span>Los datos de <strong>monto, valor UVA al origen y tasa</strong> los encontrás en tu contrato hipotecario. El <strong>valor UVA actual</strong> lo publicita el BCRA diariamente. El <strong>mes actual</strong> es el número de cuota que estás pagando ahora.</span>
+    </div>
+
+    <!-- Fila 1: parámetros del préstamo -->
+    <div class="sec-label">Datos del préstamo</div>
+    <div class="inputs-row">
+      <div class="card inp-card">
+        <div class="inp-label">Monto original del préstamo</div>
+        <div class="inp-val-wrap">
+          <span class="inp-prefix">$</span>
+          <input type="number" class="inp-num" id="uv-monto" min="1" max="500000000" step="100000" value="20000000">
+          <span class="inp-suffix">ARS</span>
+        </div>
+        <input type="range" id="uv-s-monto" min="1000000" max="500000000" step="100000" value="20000000">
+        <div class="sl-limits"><span>$1M</span><span>$500M</span></div>
+      </div>
+      <div class="card inp-card">
+        <div class="inp-label">Tasa TNA sobre UVA (del contrato)</div>
+        <div class="inp-val-wrap">
+          <input type="number" class="inp-num" id="uv-tna" min="0" max="30" step="0.5" value="6">
+          <span class="inp-suffix">% anual</span>
+        </div>
+        <input type="range" id="uv-s-tna" min="0" max="30" step="0.5" value="6">
+        <div class="sl-limits"><span>0%</span><span>30%</span></div>
+        <div class="rate-conv">Esta tasa aplica sobre UVA, no sobre pesos</div>
+      </div>
+      <div class="card inp-card">
+        <div class="inp-label">Plazo total del préstamo</div>
+        <div class="inp-val-wrap">
+          <input type="number" class="inp-num" id="uv-plazo" min="12" max="360" step="12" value="240">
+          <span class="inp-suffix">meses</span>
+        </div>
+        <input type="range" id="uv-s-plazo" min="12" max="360" step="12" value="240">
+        <div class="sl-limits"><span>1 año</span><span>30 años</span></div>
+      </div>
+    </div>
+
+    <!-- Fila 2: estado actual -->
+    <div class="inputs-row" style="margin-top:-8px">
+      <div class="card inp-card">
+        <div class="inp-label">Valor UVA al origen del préstamo</div>
+        <div class="inp-val-wrap">
+          <input type="number" class="inp-num" id="uv-uva-origen" min="1" max="100000" step="1" value="700">
+          <span class="inp-suffix">ARS / UVA</span>
+        </div>
+        <div class="rate-conv" id="uv-cap-uva-lbl">Capital: — UVAs</div>
+      </div>
+      <div class="card inp-card">
+        <div class="inp-label">Valor UVA hoy (BCRA)</div>
+        <div class="inp-val-wrap">
+          <input type="number" class="inp-num" id="uv-uva-hoy" min="1" max="100000" step="1" value="1500">
+          <span class="inp-suffix">ARS / UVA</span>
+        </div>
+        <div class="rate-conv" id="uv-var-uva-lbl">Variación desde el origen: —</div>
+      </div>
+      <div class="card inp-card">
+        <div class="inp-label">Mes actual del préstamo</div>
+        <div class="inp-val-wrap">
+          <input type="number" class="inp-num" id="uv-mes" min="1" max="360" step="1" value="24">
+          <span class="inp-suffix">/ <span id="uv-plazo-ref">240</span></span>
+        </div>
+        <input type="range" id="uv-s-mes" min="1" max="240" step="1" value="24">
+        <div class="sl-limits"><span>Mes 1</span><span id="uv-mes-max-lbl">Mes 240</span></div>
+      </div>
+    </div>
+
+    <!-- KPIs actuales -->
+    <div class="sec-label">Situación actual del préstamo</div>
+    <div class="kpi-row">
+      <div class="card kpi-card k1">
+        <div class="kpi-ico">🔷</div>
+        <div class="kpi-lbl">Cuota fija en UVA</div>
+        <div class="kpi-val" id="uv-cuota-uva">—</div>
+        <div class="kpi-sub">Constante durante todo el préstamo</div>
+      </div>
+      <div class="card kpi-card k2">
+        <div class="kpi-ico">💵</div>
+        <div class="kpi-lbl">Cuota actual en pesos</div>
+        <div class="kpi-val" id="uv-cuota-pesos">—</div>
+        <div class="kpi-sub">Cuota UVA × valor UVA hoy</div>
+      </div>
+      <div class="card kpi-card k3">
+        <div class="kpi-ico">🏠</div>
+        <div class="kpi-lbl">Saldo actual en pesos</div>
+        <div class="kpi-val" id="uv-saldo-pesos">—</div>
+        <div class="kpi-sub" id="uv-saldo-uva-sub">— UVAs pendientes</div>
+      </div>
+      <div class="card kpi-card k4">
+        <div class="kpi-ico">✅</div>
+        <div class="kpi-lbl">Capital amortizado</div>
+        <div class="kpi-val" id="uv-pct-pagado">—</div>
+        <div class="kpi-sub">Del total en UVAs</div>
+      </div>
+    </div>
+
+    <!-- Escenarios de inflación -->
+    <div class="sec-label">Escenarios de inflación mensual proyectada</div>
+    <div class="uva-scenarios">
+      <div class="sc-card sc-opt">
+        <div class="sc-header"><div class="sc-dot sc-dot-opt"></div><div class="sc-title">Optimista</div></div>
+        <div class="sc-inp-wrap">
+          <input type="number" class="sc-inp" id="uv-infl-opt" min="0" max="30" step="0.5" value="2">
+          <span class="sc-unit">% mensual</span>
+        </div>
+        <div class="sc-hint">Baja inflación o desaceleración sostenida</div>
+      </div>
+      <div class="sc-card sc-base">
+        <div class="sc-header"><div class="sc-dot sc-dot-base"></div><div class="sc-title">Base</div></div>
+        <div class="sc-inp-wrap">
+          <input type="number" class="sc-inp" id="uv-infl-base" min="0" max="30" step="0.5" value="4.5">
+          <span class="sc-unit">% mensual</span>
+        </div>
+        <div class="sc-hint">Inflación en línea con el contexto actual</div>
+      </div>
+      <div class="sc-card sc-pes">
+        <div class="sc-header"><div class="sc-dot sc-dot-pes"></div><div class="sc-title">Pesimista</div></div>
+        <div class="sc-inp-wrap">
+          <input type="number" class="sc-inp" id="uv-infl-pes" min="0" max="50" step="0.5" value="8">
+          <span class="sc-unit">% mensual</span>
+        </div>
+        <div class="sc-hint">Inflación acelerada o shock de precios</div>
+      </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="sec-label">Evolución de la cuota en pesos</div>
+    <div class="card chart-card" style="margin-bottom:22px">
+      <div class="chart-title">Cuota mensual en pesos — proyección de cuotas restantes</div>
+      <canvas id="ch-uva-line" style="max-height:320px"></canvas>
+    </div>
+
+    <!-- Tabla -->
+    <div class="sec-label">Proyección detallada (escenario base)</div>
+    <div class="card tbl-card">
+      <div class="tbl-hdr">
+        <div>
+          <div class="tbl-title">Cuadro de amortización proyectado</div>
+          <div class="tbl-hint" style="margin-top:4px">Cuota UVA fija · pesos varían con inflación proyectada</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="sc-toggle">
+            <button class="sc-tog-btn active-opt" data-sc="opt" onclick="setUVAScenario('opt')">Optimista</button>
+            <button class="sc-tog-btn" data-sc="base" onclick="setUVAScenario('base')">Base</button>
+            <button class="sc-tog-btn" data-sc="pes" onclick="setUVAScenario('pes')">Pesimista</button>
+          </div>
+          <button class="export-btn" onclick="exportUVAToExcel()">⬇ Excel</button>
+        </div>
+      </div>
+      <div class="tbl-wrap" style="max-height:460px;overflow-y:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>UVA proj.</th>
+              <th>Cuota UVA</th>
+              <th>Cuota $</th>
+              <th>Capital $</th>
+              <th>Interés $</th>
+              <th>Saldo UVA</th>
+              <th>Saldo $</th>
+            </tr>
+          </thead>
+          <tbody id="uva-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+</div><!-- /page-uva -->
 
 <script>
 // ── State ────────────────────────────────────────────────────────────────
@@ -434,7 +1313,7 @@ let chDonut, chLine;
 function initCharts() {
   chDonut = new Chart(document.getElementById('ch-donut').getContext('2d'), {
     type: 'doughnut',
-    data: { datasets: [{ data: [1,0], backgroundColor: ['#6366f1','#f59e0b'], borderWidth: 0, hoverOffset: 6 }] },
+    data: { datasets: [{ data: [1,0], backgroundColor: ['#00509e','#D97706'], borderWidth: 0, hoverOffset: 6 }] },
     options: {
       cutout: '74%', responsive: true, maintainAspectRatio: false,
       plugins: {
@@ -452,10 +1331,10 @@ function initCharts() {
       datasets: [
         {
           label: 'Saldo Real',
-          data: [], borderColor: '#6366f1',
+          data: [], borderColor: '#00509e',
           backgroundColor: ctx => {
             const g = ctx.chart.ctx.createLinearGradient(0,0,0,280);
-            g.addColorStop(0,'rgba(99,102,241,.22)'); g.addColorStop(1,'rgba(99,102,241,0)');
+            g.addColorStop(0,'rgba(0,80,158,.15)'); g.addColorStop(1,'rgba(0,80,158,0)');
             return g;
           },
           fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2.5
@@ -474,18 +1353,18 @@ function initCharts() {
       plugins: {
         legend: {
           display: true,
-          labels: { color: '#94a3b8', font: { size: 11, family: 'Inter' }, boxWidth: 20, padding: 18, usePointStyle: true }
+          labels: { color: '#4A4A4A', font: { size: 11, family: 'Inter' }, boxWidth: 20, padding: 18, usePointStyle: true }
         },
         tooltip: {
-          backgroundColor: '#1e293b', titleColor: '#94a3b8', bodyColor: '#f1f5f9',
-          borderColor: 'rgba(255,255,255,.08)', borderWidth: 1, padding: 12,
+          backgroundColor: '#FFFFFF', titleColor: '#888888', bodyColor: '#333333',
+          borderColor: 'rgba(0,0,0,.1)', borderWidth: 1, padding: 12,
           callbacks: { label: c => '  ' + c.dataset.label + ': ' + $(c.raw) }
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: { color: '#475569', font: { size: 10 }, maxTicksLimit: 12 } },
-        y: { grid: { color: 'rgba(255,255,255,.03)' }, ticks: {
-          color: '#475569', font: { size: 10 },
+        x: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: '#888888', font: { size: 10 }, maxTicksLimit: 12 } },
+        y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: {
+          color: '#888888', font: { size: 10 },
           callback: v => v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(0)+'k' : '$'+v
         }}
       },
@@ -497,7 +1376,7 @@ function initCharts() {
 // ── Slider fill ───────────────────────────────────────────────────────────
 function sliderFill(el) {
   const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
-  el.style.background = `linear-gradient(to right,#6366f1 ${pct}%,rgba(255,255,255,.07) ${pct}%)`;
+  el.style.background = `linear-gradient(to right,#00509e ${pct}%,rgba(0,0,0,.1) ${pct}%)`;
 }
 ['s-monto','s-tasa','s-plazo'].forEach(id => {
   const el = document.getElementById(id); sliderFill(el);
@@ -660,7 +1539,7 @@ function bindParam(numId, sliderId, stateKey, min, max) {
   num.addEventListener('keydown', e => { if(e.key==='Enter') num.blur(); });
 }
 
-bindParam('n-monto', 's-monto', 'monto', 50000, 50000000);
+bindParam('n-monto', 's-monto', 'monto', 1, 50000000);
 bindParam('n-tasa',  's-tasa',  'tasa',  1,     500);
 bindParam('n-plazo', 's-plazo', 'plazo', 3,     120);
 
@@ -681,9 +1560,288 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   update();
 });
 
+// ── Reset Simulator ───────────────────────────────────────────────────────
+function resetSimulator() {
+  S.monto = 500000; S.tasa = 36; S.plazo = 24; S.adv = {}; S.rateType = 'TNA';
+
+  document.getElementById('n-monto').value = 500000;
+  document.getElementById('s-monto').value = 500000;
+  document.getElementById('n-tasa').value  = 36;
+  document.getElementById('s-tasa').value  = 36;
+  document.getElementById('n-plazo').value = 24;
+  document.getElementById('s-plazo').value = 24;
+
+  document.querySelectorAll('.rate-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.rate-btn[data-type="TNA"]').classList.add('active');
+  document.getElementById('lbl-tasa').textContent = 'Tasa Nominal Anual (TNA)';
+
+  ['s-monto','s-tasa','s-plazo'].forEach(id => sliderFill(document.getElementById(id)));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  update();
+}
+
+// ── Export Excel ──────────────────────────────────────────────────────────
+function exportToExcel() {
+  const rows = calcTabla(S.monto, S.tasa, S.plazo, S.adv);
+  const totals = {
+    cT:     rows.reduce((s,x)=>s+x.cT,0),
+    cap:    rows.reduce((s,x)=>s+x.cap,0),
+    int:    rows.reduce((s,x)=>s+x.int,0),
+    capAdv: rows.reduce((s,x)=>s+x.capAdv,0),
+    intAh:  rows.reduce((s,x)=>s+x.intAh,0),
+    totPag: rows.reduce((s,x)=>s+x.totPag,0),
+  };
+
+  const headers = [
+    'Cuota N°','Saldo Inicial','Cuota Total','Capital','Interés','Saldo Final',
+    'Cuotas Adelantadas','Cap. Adelantado','Saldo Real','Int. Ahorrado','Total que Pagás'
+  ];
+
+  const data = [
+    [`Simulación: $${fmtNum(S.monto)} · ${S.tasa}% ${S.rateType} · ${S.plazo} meses`],
+    [`Generado por ¿Cómo me financio? — by Emanuel Monteleone`],
+    [],
+    headers,
+    ...rows.map(r => [
+      r.n, Math.round(r.sI), Math.round(r.cT), Math.round(r.cap), Math.round(r.int),
+      Math.round(r.sF), r.g||0, Math.round(r.capAdv), Math.round(r.saldo),
+      Math.round(r.intAh), Math.round(r.totPag)
+    ]),
+    ['TOTAL','',Math.round(totals.cT),Math.round(totals.cap),Math.round(totals.int),
+     '','',Math.round(totals.capAdv),'',Math.round(totals.intAh),Math.round(totals.totPag)]
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [
+    {wch:9},{wch:16},{wch:14},{wch:14},{wch:14},{wch:14},
+    {wch:19},{wch:18},{wch:14},{wch:16},{wch:16}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Cuadro de Pagos');
+  XLSX.writeFile(wb, `Prestamo_${S.monto}_${S.tasa}pct_${S.plazo}m.xlsx`);
+}
+
+// ── Page tabs (Aprendé / Simulador / Hipoteca UVA) ────────────────────────
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const page = btn.dataset.page;
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-learn').style.display = page === 'learn' ? '' : 'none';
+    document.getElementById('page-sim').style.display   = page === 'sim'   ? '' : 'none';
+    document.getElementById('page-uva').style.display   = page === 'uva'   ? '' : 'none';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (page === 'sim') {
+      setTimeout(() => { chDonut.resize(); chLine.resize(); update(); }, 60);
+    }
+    if (page === 'uva') {
+      if (!uvaChartsInited) { initUVACharts(); uvaChartsInited = true; }
+      setTimeout(() => { chUVALine.resize(); updateUVA(); }, 60);
+    }
+  });
+});
+
+// ── Edu Tabs ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`.tab-panel[data-panel="${tab}"]`).classList.add('active');
+  });
+});
+
+// ── UVA State ─────────────────────────────────────────────────────────────
+const UV = {
+  monto: 20000000, uvaOrigen: 700, uvaActual: 1500,
+  tna: 6, plazo: 240, mesActual: 24,
+  inflOptimista: 2, inflBase: 4.5, inflPesimista: 8
+};
+let chUVALine, uvaChartsInited = false, uvaTableSc = 'opt';
+
+function setUVAScenario(sc) {
+  uvaTableSc = sc;
+  document.querySelectorAll('.sc-tog-btn').forEach(b => {
+    b.classList.remove('active-opt','active-base','active-pes');
+  });
+  const activeClass = sc === 'opt' ? 'active-opt' : sc === 'pes' ? 'active-pes' : 'active-base';
+  document.querySelector(`.sc-tog-btn[data-sc="${sc}"]`).classList.add(activeClass);
+  const infl = sc === 'opt' ? UV.inflOptimista : sc === 'pes' ? UV.inflPesimista : UV.inflBase;
+  renderUVATable(calcUVATabla(infl));
+}
+
+function calcUVAParams() {
+  const { monto, uvaOrigen, tna, plazo, mesActual } = UV;
+  const capitalUVA = monto / uvaOrigen;
+  const r = tna / 100 / 12;
+  const cuotaUVA = r === 0 ? capitalUVA / plazo
+    : capitalUVA * r * Math.pow(1+r, plazo) / (Math.pow(1+r, plazo) - 1);
+  let saldoUVA = capitalUVA;
+  for (let i = 0; i < Math.min(mesActual - 1, plazo - 1); i++) {
+    if (saldoUVA < 0.001) break;
+    saldoUVA = Math.max(saldoUVA - (cuotaUVA - saldoUVA * r), 0);
+  }
+  return { capitalUVA, r, cuotaUVA, saldoUVA };
+}
+
+function calcUVATabla(inflMensual) {
+  const { r, cuotaUVA, saldoUVA } = calcUVAParams();
+  const { uvaActual, mesActual, plazo } = UV;
+  const rows = []; let saldo = saldoUVA;
+  for (let i = mesActual; i <= plazo && saldo > 0.001; i++) {
+    const uvaP = uvaActual * Math.pow(1 + inflMensual / 100, i - mesActual);
+    const intUVA = saldo * r;
+    const capUVA = Math.min(cuotaUVA - intUVA, saldo);
+    const nuevoSaldo = Math.max(saldo - capUVA, 0);
+    rows.push({
+      mes: i, uvaP,
+      cuotaUVA, cuotaPesos: cuotaUVA * uvaP,
+      capPesos: capUVA * uvaP, intPesos: intUVA * uvaP,
+      saldoUVA: nuevoSaldo, saldoPesos: nuevoSaldo * uvaP
+    });
+    saldo = nuevoSaldo;
+  }
+  return rows;
+}
+
+function initUVACharts() {
+  chUVALine = new Chart(document.getElementById('ch-uva-line').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Optimista', data: [], borderColor: '#007a33', backgroundColor: 'transparent', fill: false, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+        { label: 'Base', data: [], borderColor: '#00509e',
+          backgroundColor: ctx => { const g = ctx.chart.ctx.createLinearGradient(0,0,0,300); g.addColorStop(0,'rgba(0,80,158,.1)'); g.addColorStop(1,'rgba(0,80,158,0)'); return g; },
+          fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2.5 },
+        { label: 'Pesimista', data: [], borderColor: '#C0392B', backgroundColor: 'transparent', fill: false, tension: 0.4, pointRadius: 0, borderWidth: 2, borderDash: [5,5] }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, labels: { color: '#4A4A4A', font: { size: 11, family: 'Inter' }, boxWidth: 20, padding: 18, usePointStyle: true } },
+        tooltip: { backgroundColor: '#FFFFFF', titleColor: '#888888', bodyColor: '#333333', borderColor: 'rgba(0,0,0,.1)', borderWidth: 1, padding: 12,
+          callbacks: { label: c => '  ' + c.dataset.label + ': $' + fmtNum(Math.round(c.raw)) } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: '#888888', font: { size: 10 }, maxTicksLimit: 12 } },
+        y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: '#888888', font: { size: 10 },
+          callback: v => v >= 1e9 ? '$'+(v/1e9).toFixed(1)+'B' : v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(0)+'k' : '$'+v } }
+      },
+      animation: { duration: 400 }
+    }
+  });
+}
+
+function setUV(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val; }
+
+function updateUVA() {
+  if (!uvaChartsInited) return;
+  const { capitalUVA, cuotaUVA, saldoUVA } = calcUVAParams();
+  const { uvaActual, uvaOrigen, plazo } = UV;
+
+  // Sync mes slider/labels with plazo
+  const mesSlider = document.getElementById('uv-s-mes');
+  if (mesSlider) { mesSlider.max = plazo; sliderFill(mesSlider); }
+  setUV('uv-plazo-ref', plazo);
+  setUV('uv-mes-max-lbl', 'Mes ' + plazo);
+
+  const cuotaPesosActual = cuotaUVA * uvaActual;
+  const saldoPesosActual = saldoUVA * uvaActual;
+  const pctPagado = capitalUVA > 0 ? (1 - saldoUVA / capitalUVA) * 100 : 0;
+  const varUVA = uvaOrigen > 0 ? ((uvaActual / uvaOrigen) - 1) * 100 : 0;
+
+  setUV('uv-cuota-uva',    fmtNum(cuotaUVA, 2) + ' UVA');
+  setUV('uv-cuota-pesos',  $(cuotaPesosActual));
+  setUV('uv-saldo-pesos',  $(saldoPesosActual));
+  setUV('uv-saldo-uva-sub', fmtNum(saldoUVA, 2) + ' UVAs pendientes');
+  setUV('uv-pct-pagado',   fmtNum(pctPagado, 1) + '%');
+  setUV('uv-cap-uva-lbl',  'Capital: ' + fmtNum(capitalUVA, 2) + ' UVAs');
+  setUV('uv-var-uva-lbl',  'UVA subió ' + fmtNum(varUVA, 1) + '% desde el origen');
+
+  const rowsOpt  = calcUVATabla(UV.inflOptimista);
+  const rowsBase = calcUVATabla(UV.inflBase);
+  const rowsPes  = calcUVATabla(UV.inflPesimista);
+  const maxLen = Math.min(Math.max(rowsOpt.length, rowsBase.length, rowsPes.length), 120);
+
+  chUVALine.data.labels = rowsBase.slice(0, maxLen).map(r => 'M' + r.mes);
+  chUVALine.data.datasets[0].data = rowsOpt.slice(0,maxLen).map(r => Math.round(r.cuotaPesos));
+  chUVALine.data.datasets[1].data = rowsBase.slice(0,maxLen).map(r => Math.round(r.cuotaPesos));
+  chUVALine.data.datasets[2].data = rowsPes.slice(0,maxLen).map(r => Math.round(r.cuotaPesos));
+  chUVALine.update();
+
+  const rowsActive = uvaTableSc === 'opt' ? rowsOpt : uvaTableSc === 'pes' ? rowsPes : rowsBase;
+  renderUVATable(rowsActive);
+}
+
+function renderUVATable(rows) {
+  const tbody = document.getElementById('uva-tbody');
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.mes}</td>
+      <td>${fmtNum(r.uvaP, 2)}</td>
+      <td>${fmtNum(r.cuotaUVA, 2)}</td>
+      <td class="c-tot">${$(r.cuotaPesos)}</td>
+      <td class="c-cap">${$(r.capPesos)}</td>
+      <td class="c-int">${$(r.intPesos)}</td>
+      <td>${fmtNum(r.saldoUVA, 2)}</td>
+      <td class="c-real">${$(r.saldoPesos)}</td>
+    </tr>`).join('');
+}
+
+function exportUVAToExcel() {
+  const rows = calcUVATabla(UV.inflBase);
+  const { monto, uvaOrigen, uvaActual, tna, plazo, inflBase } = UV;
+  const data = [
+    [`Hipoteca UVA: $${fmtNum(monto)} · UVA origen ${uvaOrigen} · UVA hoy ${uvaActual} · TNA ${tna}% · ${plazo} meses`],
+    [`Escenario base: ${inflBase}% inflación mensual · Generado por ¿Cómo me financio? — by Emanuel Monteleone`],
+    [],
+    ['Mes','UVA Proyectada','Cuota UVA','Cuota $','Capital $','Interés $','Saldo UVA','Saldo $'],
+    ...rows.map(r => [r.mes, Math.round(r.uvaP*100)/100, Math.round(r.cuotaUVA*100)/100,
+      Math.round(r.cuotaPesos), Math.round(r.capPesos), Math.round(r.intPesos),
+      Math.round(r.saldoUVA*100)/100, Math.round(r.saldoPesos)])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:6},{wch:14},{wch:12},{wch:16},{wch:16},{wch:16},{wch:12},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'UVA Proyección');
+  XLSX.writeFile(wb, `UVA_${monto}_${tna}pct_${plazo}m.xlsx`);
+}
+
+// UVA input bindings (usa sliderFill del simulador principal)
+function bindUVSlider(numId, sliderId, key, min, max) {
+  const num = document.getElementById(numId);
+  const sl  = document.getElementById(sliderId);
+  if (!sl || !num) return;
+  sliderFill(sl);
+  sl.addEventListener('input', () => { num.value = sl.value; UV[key] = +sl.value; sliderFill(sl); updateUVA(); });
+  num.addEventListener('input', () => { let v = parseFloat(num.value)||min; v = Math.min(Math.max(v,min),max); sl.value = v; UV[key] = v; sliderFill(sl); updateUVA(); });
+}
+function bindUVNum(id, key) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => { UV[key] = parseFloat(el.value)||0; updateUVA(); });
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────
 initCharts();
 update();
+// Ocultar simuladores después de inicializar los charts (necesitan estar visibles al init)
+document.getElementById('page-sim').style.display = 'none';
+document.getElementById('page-uva').style.display = 'none';
+// Bindear inputs UVA
+bindUVSlider('uv-monto',  'uv-s-monto', 'monto',      1,   500000000);
+bindUVSlider('uv-tna',    'uv-s-tna',   'tna',        0,   30);
+bindUVSlider('uv-plazo',  'uv-s-plazo', 'plazo',      12,  360);
+bindUVSlider('uv-mes',    'uv-s-mes',   'mesActual',  1,   360);
+bindUVNum('uv-uva-origen', 'uvaOrigen');
+bindUVNum('uv-uva-hoy',    'uvaActual');
+bindUVNum('uv-infl-opt',   'inflOptimista');
+bindUVNum('uv-infl-base',  'inflBase');
+bindUVNum('uv-infl-pes',   'inflPesimista');
 </script>
 </body>
 </html>
